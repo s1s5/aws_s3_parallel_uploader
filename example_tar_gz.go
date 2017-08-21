@@ -1,47 +1,47 @@
 package main
 
 import (
-	"flag"
+    "flag"
 
-	"archive/tar"
+    "archive/tar"
     "compress/gzip"
 
-	"bytes"
+    "bytes"
     "fmt"
     "io"
     "os"
 )
 
 var (
-	filename string
+    filename string
 )
 
 func init() {
-	flag.StringVar(&filename, "f", "", "filename")
+    flag.StringVar(&filename, "f", "", "filename")
 }
 
 func main() {
-	flag.Parse()
+    flag.Parse()
 
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+    file, err := os.Open(filename)
+    if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+    }
     defer file.Close()
 
     // gzipの展開
     gzip_reader, err := gzip.NewReader(file)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+    if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+    }
     defer gzip_reader.Close()
 
     // tarの展開
     tar_reader := tar.NewReader(gzip_reader)
 
-	i := 0
+    i := 0
     for {
         header, err := tar_reader.Next()
         if err == io.EOF {
@@ -49,7 +49,7 @@ func main() {
         }
 
         name := header.Name
-		// const (
+        // const (
         // TypeReg           = '0'    // regular file
         // TypeRegA          = '\x00' // regular file
         // TypeLink          = '1'    // hard link
@@ -64,9 +64,9 @@ func main() {
         // TypeGNULongName   = 'L'    // Next file has a long name
         // TypeGNULongLink   = 'K'    // Next file symlinks to a file w/ a long name
         // TypeGNUSparse     = 'S'    // sparse file
-		// )
+        // )
 
-		// type Header struct {
+        // type Header struct {
         // Name       string    // name of header file entry
         // Mode       int64     // permission and mode bits
         // Uid        int       // user id of owner
@@ -82,57 +82,57 @@ func main() {
         // AccessTime time.Time // access time
         // ChangeTime time.Time // status change time
         // Xattrs     map[string]string
-		// }
+        // }
 
-		switch header.Typeflag {
-		case tar.TypeDir:
-			continue
-		case tar.TypeReg:
-			bb := new(bytes.Buffer)
-			_, err := io.Copy(bb, tar_reader)
-			if err != nil {
-				fmt.Println("ExtractTarGz: Copy() failed: %s", err.Error())
-			}
-			fmt.Println("(", i, ")", "Name: ", name, header.Size, bb.Len())
-			
-			// fmt.Println(" --- ")
-			// io.Copy(os.Stdout, tar_reader)
-			// fmt.Println(" --- ")
-			// os.Exit(0)
-		default:
-			fmt.Printf("%s : %c %s %s\n",
-				"Yikes! Unable to figure out type",
-				header.Typeflag,
-				"in file",
-				name,
-			)
-		}
-		i++
+        switch header.Typeflag {
+        case tar.TypeDir:
+            continue
+        case tar.TypeReg:
+            bb := new(bytes.Buffer)
+            _, err := io.Copy(bb, tar_reader)
+            if err != nil {
+                fmt.Println("ExtractTarGz: Copy() failed: %s", err.Error())
+            }
+            fmt.Println("(", i, ")", "Name: ", name, header.Size, bb.Len())
+            
+            // fmt.Println(" --- ")
+            // io.Copy(os.Stdout, tar_reader)
+            // fmt.Println(" --- ")
+            // os.Exit(0)
+        default:
+            fmt.Printf("%s : %c %s %s\n",
+                "Yikes! Unable to figure out type",
+                header.Typeflag,
+                "in file",
+                name,
+            )
+        }
+        i++
     }
 }
 
 
 // if err != nil {
-// 	log.Fatalf("ExtractTarGz: Next() failed: %s", err.Error())
+//  log.Fatalf("ExtractTarGz: Next() failed: %s", err.Error())
 // }
 
 // switch header.Typeflag {
-// 	case tar.TypeDir:
-// 	if err := os.Mkdir(header.Name, 0755); err != nil {
-// 		log.Fatalf("ExtractTarGz: Mkdir() failed: %s", err.Error())
-// 	}
-// 	case tar.TypeReg:
-// 	outFile, err := os.Create(header.Name)
-// 	if err != nil {
-// 		log.Fatalf("ExtractTarGz: Create() failed: %s", err.Error())
-// 	}
-// 	defer outFile.Close()
-// 	if _, err := io.Copy(outFile, tarReader); err != nil {
-// 		log.Fatalf("ExtractTarGz: Copy() failed: %s", err.Error())
-// 	}
-// 	default:
-// 	log.Fatalf(
-// 		"ExtractTarGz: uknown type: %s in %s",
-// 		header.Typeflag,
-// 		header.Name)
+//  case tar.TypeDir:
+//  if err := os.Mkdir(header.Name, 0755); err != nil {
+//   log.Fatalf("ExtractTarGz: Mkdir() failed: %s", err.Error())
+//  }
+//  case tar.TypeReg:
+//  outFile, err := os.Create(header.Name)
+//  if err != nil {
+//   log.Fatalf("ExtractTarGz: Create() failed: %s", err.Error())
+//  }
+//  defer outFile.Close()
+//  if _, err := io.Copy(outFile, tarReader); err != nil {
+//   log.Fatalf("ExtractTarGz: Copy() failed: %s", err.Error())
+//  }
+//  default:
+//  log.Fatalf(
+//   "ExtractTarGz: uknown type: %s in %s",
+//   header.Typeflag,
+//   header.Name)
 // }

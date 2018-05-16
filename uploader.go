@@ -23,12 +23,14 @@ var (
     filename string
     rel_path string = "/"
     bucket_name string
+    region string
 )
 
 func init() {
     flag.StringVar(&bucket_name, "b", "", "Bucket Name")
     flag.StringVar(&filename, "f", "", "filename")
     flag.StringVar(&rel_path, "p", "", "filename")
+    flag.StringVar(&region, "r", "", "region name")
 }
 
 func consumer(bucket *s3.Bucket, message <-chan *file_and_bb, done chan<- bool) {
@@ -56,7 +58,13 @@ func main() {
 
     // Open Bucket
     s := s3.New(auth, aws.APNortheast)
-    // s := s3.New(auth, aws.USWest2)
+    if region == "tokyo" {
+    } else if region == "us_west2" {
+        s = s3.New(auth, aws.USWest2)
+    } else {
+        panic(region + " unknown")
+    }
+
     bucket := s.Bucket(bucket_name)
 
     message := make(chan *file_and_bb, 10)
